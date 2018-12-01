@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using RestNexus.UrlHandling;
 
 namespace RestNexus.Controllers
 {
@@ -6,22 +7,40 @@ namespace RestNexus.Controllers
     [ApiController]
     public class JsonController : ControllerBase
     {
+        private readonly UrlRepository _urlRepository;
+        public JsonController(UrlRepository urlRepository)
+        {
+            _urlRepository = urlRepository;
+        }
+
         [HttpGet("{*url}")]
         public ActionResult<object> Get(string url)
         {
-            return NotFound();
+            var handler = _urlRepository.Find(url);
+            if (handler == null)
+                return NotFound();
+
+            return handler.Handle(url, null);
         }
 
         [HttpPost("{*url}")]
         public ActionResult<object> Post(string url, [FromBody] object body)
         {
-            return NotFound();
+            var handler = _urlRepository.Find(url);
+            if (handler == null)
+                return NotFound();
+
+            return handler.Handle(url, body);
         }
 
         [HttpPut("{*url}")]
         public ActionResult<object> Put(string url, [FromBody] object body)
         {
-            return NotFound();
+            var handler = _urlRepository.Find(url);
+            if (handler == null)
+                return NotFound();
+
+            return handler.Handle(url, body);
         }
     }
 }
