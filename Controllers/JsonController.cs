@@ -17,30 +17,33 @@ namespace RestNexus.Controllers
         public ActionResult<object> Get(string url)
         {
             var handler = _urlRepository.Find(url);
-            if (handler == null)
+            object result = handler?.Handle(HttpVerb.Get, url, null);
+            if (result == null)
                 return NotFound();
 
-            return handler.Handle(url, null);
+            return result;
         }
 
         [HttpPost("{*url}")]
         public ActionResult<object> Post(string url, [FromBody] object body)
         {
             var handler = _urlRepository.Find(url);
-            if (handler == null)
+            object result = handler?.Handle(HttpVerb.Post, url, body);
+            if (result == null)
                 return NotFound();
 
-            return handler.Handle(url, body);
+            return result;
         }
 
         [HttpPut("{*url}")]
         public ActionResult<object> Put(string url, [FromBody] object body)
         {
             var handler = _urlRepository.Find(url);
-            if (handler == null)
+            object result = handler?.Handle(HttpVerb.Put, url, body);
+            if (result == null)
                 return NotFound();
 
-            return handler.Handle(url, body);
+            return result;
         }
     }
 }
