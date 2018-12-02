@@ -47,6 +47,7 @@ namespace RestNexus.UrlHandling
 
             var completionValue = engine
                 .Execute(_script)
+                .SetValue("http", new HttpFunctions())
                 .SetValue(ParameterName, new
                 {
                     url = url,
