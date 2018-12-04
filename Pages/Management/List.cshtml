@@ -1,0 +1,39 @@
+﻿@page
+@model RestNexus.Pages.Management.ListModel
+@{
+    ViewData["Title"] = "Url Handlers";
+    Layout = "~/Pages/_Layout.cshtml";
+}
+
+<h2>Url Handlers</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Url Template</th>
+            <th>Type</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Handlers)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.UrlTemplate)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.HandlerType)
+                </td>
+                <td>
+                    @Html.ActionLink("Edit", "detail", new { urlTemplate = item.UrlTemplate }) |
+                    @Html.ActionLink("Delete", "delete", new { urlTemplate = item.UrlTemplate })
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<p>
+    @Html.ActionLink("Create New", "detail")
+</p>
