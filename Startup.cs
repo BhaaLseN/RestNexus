@@ -34,6 +34,7 @@ namespace RestNexus
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseStaticFiles();
             app.UseMvc();
         }
     }
