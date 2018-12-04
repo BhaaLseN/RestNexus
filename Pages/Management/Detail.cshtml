@@ -1,0 +1,82 @@
+﻿@page
+@model RestNexus.Pages.Management.DetailModel
+@using RestNexus.UrlHandling
+@{
+    ViewData["Title"] = Model.IsNew ? "Create" : "Edit";
+    Layout = "~/Pages/_Layout.cshtml";
+}
+
+@section Header {
+    <link rel="stylesheet" data-name="vs/editor/editor.main" href="~/lib/monaco-editor/min/vs/editor/editor.main.css">
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<p>Loaded @Html.DisplayFor(model => model.Handler.UrlTemplate)</p>
+<div id="container" style="width:800px;height:600px;border:1px solid grey"></div>
+
+@section Scripts {
+    <script type="text/javascript">
+        var require = { paths: { 'vs': '/lib/monaco-editor/min/vs' } };
+    </script>
+    <script src="~/lib/monaco-editor/min/vs/loader.js"></script>
+    <script src="~/lib/monaco-editor/min/vs/editor/editor.main.nls.js"></script>
+    <script src="~/lib/monaco-editor/min/vs/editor/editor.main.js"></script>
+    <script type="text/javascript">
+
+    @if (string.IsNullOrWhiteSpace(Model.Handler.Content))
+    {
+<text>    var scriptContent = [
+        'function post(request) {',
+        '\tvar calledBy = request.url;',
+        '\tvar calledWith = request.body;',
+        '\tvar callerHeaders = request.headers;',
+</text>
+        var parameters = UrlHandler.ExtractParameters(Model.Handler.UrlTemplate);
+        foreach (var key in parameters.Keys)
+        {
+            @:'\tvar @key = request.parameters.@key;',
+        }
+<text>        '\thttp.post("http://localhost:6666/api/ping", { action: "pong" });',
+        '\treturn "ok";',
+        '}'
+    ].join('\n');
+</text>
+    }
+    else
+    {
+    @:var scriptContent = `@Html.Raw(Model.Handler.Content)`;
+    }
+    var editor = monaco.editor.create(document.getElementById('container'), {
+        value: scriptContent,
+        language: 'javascript'
+    });
+    var http = `
+declare class http {
+    /** Performs a GET request to url
+    * @@param url The URL to request (must include scheme/host)
+    */
+    static get(url: string): httpresponse;
+
+    /** Performs a POST request to url passing body
+    * @@param url The URL to request (must include scheme/host)
+    * @@param body Any payload to be passed as JSON content (can be empty)
+    */
+    static post(url: string, body): httpresponse;
+
+    /** Performs a PUT request to url passing body
+    * @@param url The URL to request (must include scheme/host)
+    * @@param body Any payload to be passed as JSON content (can be empty)
+    */
+    static put(url: string, body): httpresponse;
+}
+
+declare class httpresponse {
+    /** The HTTP response code of the request; or -1 in case of error */
+    statusCode: int;
+    /** The response content as text; or the exception text in case of error */
+    response: string;
+}`;
+    monaco.languages.typescript.javascriptDefaults.addExtraLib(http, 'RestNexus/http.js');
+    </script>
+}

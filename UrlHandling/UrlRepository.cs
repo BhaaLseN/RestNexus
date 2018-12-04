@@ -25,6 +25,7 @@ namespace RestNexus.UrlHandling
             return null;
         }
         public IEnumerable<UrlHandler> GetAll() => _handlers.Values;
+        public UrlHandler Get(string urlTemplate) => _handlers.Values.FirstOrDefault(h => h.UrlTemplate == urlTemplate);
 
         private sealed class UrlTemplate : IEquatable<UrlTemplate>
         {
