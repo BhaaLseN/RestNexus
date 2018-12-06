@@ -51,32 +51,11 @@
         value: scriptContent,
         language: 'javascript'
     });
-    var http = `
-declare class http {
-    /** Performs a GET request to url
-    * @@param url The URL to request (must include scheme/host)
-    */
-    static get(url: string): httpresponse;
-
-    /** Performs a POST request to url passing body
-    * @@param url The URL to request (must include scheme/host)
-    * @@param body Any payload to be passed as JSON content (can be empty)
-    */
-    static post(url: string, body): httpresponse;
-
-    /** Performs a PUT request to url passing body
-    * @@param url The URL to request (must include scheme/host)
-    * @@param body Any payload to be passed as JSON content (can be empty)
-    */
-    static put(url: string, body): httpresponse;
+@{
+    foreach (var (fileName, content) in Model.Definitions)
+    {
+    @:monaco.languages.typescript.javascriptDefaults.addExtraLib(`@Html.Raw(content)`, 'RestNexus/@fileName');
+    }
 }
-
-declare class httpresponse {
-    /** The HTTP response code of the request; or -1 in case of error */
-    statusCode: int;
-    /** The response content as text; or the exception text in case of error */
-    response: string;
-}`;
-    monaco.languages.typescript.javascriptDefaults.addExtraLib(http, 'RestNexus/http.js');
     </script>
 }
