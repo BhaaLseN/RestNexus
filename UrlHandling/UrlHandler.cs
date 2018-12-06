@@ -19,14 +19,17 @@ namespace RestNexus.UrlHandling
 
             return segment.Substring(1);
         }
+        public static Dictionary<string, string> ExtractParameters(string urlTemplate) => ExtractParameters(urlTemplate, urlTemplate);
         public static Dictionary<string, string> ExtractParameters(string urlTemplate, string url)
         {
-            if (string.IsNullOrEmpty(urlTemplate))
-                throw new ArgumentNullException(nameof(urlTemplate));
-            if (string.IsNullOrEmpty(url))
-                throw new ArgumentNullException(nameof(url));
-
             var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            // no template; assume no parameters
+            if (string.IsNullOrEmpty(urlTemplate))
+                return result;
+            // no url; assume we want to parse the template itself (to get parameter keys)
+            if (string.IsNullOrEmpty(url))
+                url = urlTemplate;
 
             string[] templateSegments = urlTemplate.Split('/', StringSplitOptions.RemoveEmptyEntries);
             string[] urlSegments = url.Split('/', StringSplitOptions.RemoveEmptyEntries);
@@ -38,7 +41,10 @@ namespace RestNexus.UrlHandling
                 if (string.IsNullOrEmpty(parameterName))
                     continue;
 
-                result[parameterName] = urlSegments[i];
+                string parameterValue = urlSegments[i];
+                if (IsParameter(parameterValue))
+                    parameterValue = null;
+                result[parameterName] = parameterValue;
             }
 
             return result;
