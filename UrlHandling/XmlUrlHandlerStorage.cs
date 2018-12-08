@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Xml.Linq;
 using Microsoft.Extensions.Configuration;
 
@@ -45,6 +46,31 @@ namespace RestNexus.UrlHandling
             }
         }
 
+        public void SaveHandler(string urlTemplate, UrlHandler handler)
+        {
+            if (handler == null)
+                throw new ArgumentNullException(nameof(handler));
+            if (!(handler is JavaScriptUrlHandler jsHandler))
+                throw new NotSupportedException("Only JavaScript handlers are supported at this point.");
+
+            var existingHandler = _dataXml.Root.Elements(HandlerElementName).FirstOrDefault(e => e.Attribute(HandlerUrlTemplateAttributeName)?.Value == urlTemplate);
+            if (existingHandler != null)
+            {
+                existingHandler.SetAttributeValue(HandlerFileNameAttributeName, WriteContent(existingHandler.Attribute(HandlerFileNameAttributeName)?.Value, jsHandler.Script));
+                existingHandler.SetAttributeValue(HandlerUrlTemplateAttributeName, handler.UrlTemplate);
+            }
+            else
+            {
+                _dataXml.Root.Add(new XElement(HandlerElementName,
+                    // we only support JavaScript at this point, so we can hardcode the type here.
+                    new XAttribute(HandlerTypeAttributeName, "js"),
+                    new XAttribute(HandlerFileNameAttributeName, WriteContent(null, jsHandler.Script)),
+                    new XAttribute(HandlerUrlTemplateAttributeName, handler.UrlTemplate)));
+            }
+
+            _dataXml.Save(_dataXmlPath);
+        }
+
         private string ReadContent(string fileName)
         {
             if (string.IsNullOrEmpty(fileName))
@@ -55,6 +81,26 @@ namespace RestNexus.UrlHandling
                 return null;
 
             return File.ReadAllText(filePath);
+        }
+        private string WriteContent(string fileName, string content)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+                fileName = GenerateFileName();
+
+            string filePath = Path.Combine(_dataDirectory, fileName);
+            File.WriteAllText(filePath, content);
+
+            return fileName;
+        }
+
+        private string GenerateFileName()
+        {
+            int fileCount = Directory.GetFiles(_dataDirectory, "*.js").Length;
+
+            while (File.Exists(Path.Combine(_dataDirectory, fileCount + ".js")))
+                fileCount++;
+
+            return fileCount + ".js";
         }
 
         private static XDocument LoadXml(string dataXmlPath)

@@ -8,12 +8,32 @@
 
 @section Header {
     <link rel="stylesheet" data-name="vs/editor/editor.main" href="~/lib/monaco-editor/min/vs/editor/editor.main.css">
+    <style type="text/css">
+    #urlTemplate {
+        width: 97%;
+        /* overrule max-width limitation that applies to the rest of the site */
+        max-width: unset;
+    }
+    </style>
 }
 
 <h2>@ViewData["Title"]</h2>
 
-<p>Loaded @Html.DisplayFor(model => model.Handler.UrlTemplate)</p>
-<div id="container" style="width:800px;height:600px;border:1px solid grey"></div>
+<form id="f" method="post">
+    <input type="hidden" id="codeField" name="code" />
+    <p>Url: @Html.TextBoxFor(model => model.Handler.UrlTemplate, new
+       {
+           id = "urlTemplate",
+           onchange = "urlTemplateChanged()",
+           onkeypress = "this.onchange()",
+           oninput = "this.onchange()",
+           onpaste = "this.onchange()",
+       })</p>
+    @Html.ValidationMessageFor(model => model.Handler.UrlTemplate)
+    <p id="urlParameters"></p>
+    <div id="container" style="height:600px;border:1px solid grey"></div>
+    <input type="submit" value="Save" />
+</form>
 
 @section Scripts {
     <script type="text/javascript">
@@ -57,5 +77,36 @@
     @:monaco.languages.typescript.javascriptDefaults.addExtraLib(`@Html.Raw(content)`, 'RestNexus/@fileName');
     }
 }
+
+    $('#f').submit(function() {
+        document.getElementById('codeField').value = editor.getValue();
+        return true;
+    });
+
+    function urlTemplateChanged() {
+        var urlTemplate = $('#urlTemplate').val();
+        var segments = urlTemplate
+            .split('/')
+            .filter(function(s) { return s.startsWith(':'); })
+            .map(function(s) { return s.substr(1); })
+            .map(function(s) { return s === '' ? '<span style="color:red">(empty)</span>' : s; });
+
+        var foundParameters = '<i>No URL Parameters, use a segment starting with a colon to create one (such as "order/<b>:number</b>")</i>';
+        if (segments.length > 0) {
+            var seen = [];
+            foundParameters = '<b>Parameters:</b> ' + segments
+                .map(function(s) {
+                    if (seen.indexOf(s) !== -1) {
+                        return '<span style="color: orange">' + s + ' (duplicate)</span>';
+                    }
+                    seen.push(s);
+                    return s;
+                })
+                .join(', ');
+        }
+
+        $('#urlParameters').html(foundParameters);
+    }
+    urlTemplateChanged();
     </script>
 }

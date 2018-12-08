@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.FileProviders;
 using RestNexus.Models;
@@ -50,6 +52,27 @@ namespace RestNexus.Pages.Management
             }
 
             Handler = handlerViewModel;
+        }
+
+        public IActionResult OnPost(string urlTemplate, IFormCollection formData)
+        {
+            if (!ModelState.IsValid)
+                return Page();
+
+            Handler = new UrlHandlerViewModel
+            {
+                UrlTemplate = formData["Handler.UrlTemplate"],
+                Content = formData["code"],
+            };
+
+            // update urlTemplate in case this is a new one.
+            // we need the old path to indicate which one needs to be updated.
+            if (string.IsNullOrEmpty(urlTemplate))
+                urlTemplate = Handler.UrlTemplate;
+
+            _urlRepository.Update(urlTemplate, Handler.UrlTemplate, Handler.Content);
+
+            return RedirectToPage("List");
         }
     }
 }

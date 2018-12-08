@@ -27,6 +27,46 @@ namespace RestNexus.UrlHandling
         public IEnumerable<UrlHandler> GetAll() => _handlers.Values;
         public UrlHandler Get(string urlTemplate) => _handlers.Values.FirstOrDefault(h => h.UrlTemplate == urlTemplate);
 
+        public void Update(string urlTemplate, string newUrlTemplate, string newContent)
+        {
+            if (string.IsNullOrWhiteSpace(urlTemplate))
+                throw new ArgumentNullException(nameof(urlTemplate));
+
+            var templateToUpdate = new UrlTemplate(urlTemplate) { IsTemplate = true };
+            if (_handlers.TryGetValue(templateToUpdate, out var handler))
+            {
+                if (!(handler is JavaScriptUrlHandler jsHandler))
+                    throw new NotSupportedException("Only JavaScript handlers are supported at this point.");
+
+                jsHandler.Script = newContent;
+                if (!string.IsNullOrEmpty(newUrlTemplate) && newUrlTemplate != urlTemplate)
+                {
+                    var changedTemplateUrl = new UrlTemplate(newUrlTemplate) { IsTemplate = true };
+                    if (_handlers.TryGetValue(changedTemplateUrl, out var theOtherHandler) && theOtherHandler != handler)
+                        throw new InvalidOperationException($"A Handler for Url Template '{newUrlTemplate}' already exists.");
+                    jsHandler.UrlTemplate = newUrlTemplate;
+                    _handlers.Remove(templateToUpdate);
+                    _handlers.Add(changedTemplateUrl, jsHandler);
+                }
+            }
+            else
+            {
+                string newUrl = urlTemplate;
+                if (!string.IsNullOrEmpty(newUrl))
+                    newUrl = urlTemplate;
+                handler = new JavaScriptUrlHandler
+                {
+                    UrlTemplate = newUrl,
+                    Script = newContent,
+                };
+                var newTemplateUrl = new UrlTemplate(newUrl) { IsTemplate = true };
+                if (!_handlers.TryAdd(newTemplateUrl, handler))
+                    throw new InvalidOperationException($"A Handler for Url Template '{newUrl}' already exists.");
+            }
+
+            _storage.SaveHandler(urlTemplate, handler);
+        }
+
         private sealed class UrlTemplate : IEquatable<UrlTemplate>
         {
             public bool IsTemplate { get; set; }
