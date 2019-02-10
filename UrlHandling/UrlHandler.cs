@@ -8,7 +8,7 @@ namespace RestNexus.UrlHandling
     {
         public string UrlTemplate { get; set; }
 
-        public abstract object Handle(HttpVerb method, string url, object body);
+        public abstract object Handle(UrlRequest request);
 
         // parameters are in the form ":name"
         public static bool IsParameter(string segment) => segment?.FirstOrDefault() == ':';
@@ -26,7 +26,7 @@ namespace RestNexus.UrlHandling
             if (string.IsNullOrEmpty(url))
                 throw new ArgumentNullException(nameof(url));
 
-            var result = new Dictionary<string, string>();
+            var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
             string[] templateSegments = urlTemplate.Split('/', StringSplitOptions.RemoveEmptyEntries);
             string[] urlSegments = url.Split('/', StringSplitOptions.RemoveEmptyEntries);
@@ -43,6 +43,22 @@ namespace RestNexus.UrlHandling
 
             return result;
         }
+    }
+
+    public class UrlRequest
+    {
+        public UrlRequest(HttpVerb method, string url, IReadOnlyDictionary<string, string> headers, object body)
+        {
+            Method = method;
+            Url = url;
+            Headers = headers;
+            Body = body;
+        }
+
+        public HttpVerb Method { get; }
+        public string Url { get; }
+        public IReadOnlyDictionary<string, string> Headers { get; }
+        public object Body { get; }
     }
 
     public enum HttpVerb
