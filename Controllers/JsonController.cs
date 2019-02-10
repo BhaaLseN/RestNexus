@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System;
+using Microsoft.AspNetCore.Mvc;
 using RestNexus.UrlHandling;
 
 namespace RestNexus.Controllers
@@ -13,11 +14,18 @@ namespace RestNexus.Controllers
             _urlRepository = urlRepository;
         }
 
+        private UrlRequest GetUrlRequest(string url, object body = null)
+        {
+            if (!Enum.TryParse<HttpVerb>(Request.Method, true, out var method))
+                throw new NotSupportedException($"Sorry, Method {Request.Method} is not supported.");
+            return new UrlRequest(method, url, body);
+        }
+
         [HttpGet("{*url}")]
         public ActionResult<object> Get(string url)
         {
             var handler = _urlRepository.Find(url);
-            object result = handler?.Handle(HttpVerb.Get, url, null);
+            object result = handler?.Handle(GetUrlRequest(url));
             if (result == null)
                 return NotFound();
 
@@ -28,7 +36,7 @@ namespace RestNexus.Controllers
         public ActionResult<object> Post(string url, [FromBody] object body)
         {
             var handler = _urlRepository.Find(url);
-            object result = handler?.Handle(HttpVerb.Post, url, body);
+            object result = handler?.Handle(GetUrlRequest(url, body));
             if (result == null)
                 return NotFound();
 
@@ -39,7 +47,7 @@ namespace RestNexus.Controllers
         public ActionResult<object> Put(string url, [FromBody] object body)
         {
             var handler = _urlRepository.Find(url);
-            object result = handler?.Handle(HttpVerb.Put, url, body);
+            object result = handler?.Handle(GetUrlRequest(url, body));
             if (result == null)
                 return NotFound();
 

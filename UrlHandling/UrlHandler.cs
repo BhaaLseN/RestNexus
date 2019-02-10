@@ -8,7 +8,7 @@ namespace RestNexus.UrlHandling
     {
         public string UrlTemplate { get; set; }
 
-        public abstract object Handle(HttpVerb method, string url, object body);
+        public abstract object Handle(UrlRequest request);
 
         // parameters are in the form ":name"
         public static bool IsParameter(string segment) => segment?.FirstOrDefault() == ':';
@@ -43,6 +43,20 @@ namespace RestNexus.UrlHandling
 
             return result;
         }
+    }
+
+    public class UrlRequest
+    {
+        public UrlRequest(HttpVerb method, string url, object body)
+        {
+            Method = method;
+            Url = url;
+            Body = body;
+        }
+
+        public HttpVerb Method { get; }
+        public string Url { get; }
+        public object Body { get; }
     }
 
     public enum HttpVerb

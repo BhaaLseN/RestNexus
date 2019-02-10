@@ -18,14 +18,14 @@ namespace RestNexus.UrlHandling
 
         private const string ParameterName = "request";
 
-        public override object Handle(HttpVerb method, string url, object body)
+        public override object Handle(UrlRequest request)
         {
             EnsureScript();
 
-            if (!_handleMethods.TryGetValue(method, out var handleMethod))
+            if (!_handleMethods.TryGetValue(request.Method, out var handleMethod))
                 return null;
 
-            var engine = Prepare(url, body);
+            var engine = Prepare(request);
             string methodInvocation = handleMethod.GetInvocationString(ParameterName);
             var completionValue = engine
                 .Execute(methodInvocation)
@@ -34,15 +34,16 @@ namespace RestNexus.UrlHandling
             return completionValue.ToObject();
         }
 
-        private Engine Prepare(string url, object body)
+        private Engine Prepare(UrlRequest request)
         {
             var engine = new Engine();
 
-            object bodyParam = body;
+            object bodyParam = request.Body;
             // Jint cannot natively use Newtonsoft objects, lets wrap them
-            if (body is JObject jObject)
+            if (bodyParam is JObject jObject)
                 bodyParam = new NewtonsoftObjectInstance(engine, jObject);
 
+            string url = request.Url;
             var parameters = ExtractParameters(UrlTemplate, url);
 
             var completionValue = engine
