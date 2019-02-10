@@ -19,7 +19,7 @@ namespace RestNexus.Controllers
         {
             if (!Enum.TryParse<HttpVerb>(Request.Method, true, out var method))
                 throw new NotSupportedException($"Sorry, Method {Request.Method} is not supported.");
-            var headers = Request.Headers.ToDictionary(k => k.Key, v => v.Value.ToString());
+            var headers = Request.Headers.ToDictionary(k => k.Key, v => v.Value.ToString(), StringComparer.OrdinalIgnoreCase);
             return new UrlRequest(method, url, headers, body);
         }
 

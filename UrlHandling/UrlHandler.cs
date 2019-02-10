@@ -26,7 +26,7 @@ namespace RestNexus.UrlHandling
             if (string.IsNullOrEmpty(url))
                 throw new ArgumentNullException(nameof(url));
 
-            var result = new Dictionary<string, string>();
+            var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
             string[] templateSegments = urlTemplate.Split('/', StringSplitOptions.RemoveEmptyEntries);
             string[] urlSegments = url.Split('/', StringSplitOptions.RemoveEmptyEntries);
