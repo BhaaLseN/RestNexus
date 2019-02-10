@@ -47,15 +47,17 @@ namespace RestNexus.UrlHandling
 
     public class UrlRequest
     {
-        public UrlRequest(HttpVerb method, string url, object body)
+        public UrlRequest(HttpVerb method, string url, IReadOnlyDictionary<string, string> headers, object body)
         {
             Method = method;
             Url = url;
+            Headers = headers;
             Body = body;
         }
 
         public HttpVerb Method { get; }
         public string Url { get; }
+        public IReadOnlyDictionary<string, string> Headers { get; }
         public object Body { get; }
     }
 

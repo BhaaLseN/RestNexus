@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using RestNexus.UrlHandling;
 
@@ -18,7 +19,8 @@ namespace RestNexus.Controllers
         {
             if (!Enum.TryParse<HttpVerb>(Request.Method, true, out var method))
                 throw new NotSupportedException($"Sorry, Method {Request.Method} is not supported.");
-            return new UrlRequest(method, url, body);
+            var headers = Request.Headers.ToDictionary(k => k.Key, v => v.Value.ToString());
+            return new UrlRequest(method, url, headers, body);
         }
 
         [HttpGet("{*url}")]

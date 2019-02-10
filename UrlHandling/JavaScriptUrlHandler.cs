@@ -53,6 +53,7 @@ namespace RestNexus.UrlHandling
                 {
                     url = url,
                     parameters = parameters,
+                    headers = request.Headers,
                     body = bodyParam,
                 });
 
