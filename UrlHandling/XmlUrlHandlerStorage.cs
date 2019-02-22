@@ -8,6 +8,11 @@ namespace RestNexus.UrlHandling
 {
     internal sealed class XmlUrlHandlerStorage : IUrlHandlerStorage
     {
+        private static readonly XName HandlerElementName = "handler";
+        private static readonly XName HandlerTypeAttributeName = "type";
+        private static readonly XName HandlerFileNameAttributeName = "file";
+        private static readonly XName HandlerUrlTemplateAttributeName = "url";
+
         private readonly string _dataDirectory;
         private readonly string _dataXmlPath;
         private readonly XDocument _dataXml;
@@ -24,18 +29,18 @@ namespace RestNexus.UrlHandling
         public IEnumerable<UrlHandler> LoadHandlers()
         {
             int handlerNumber = 0;
-            foreach (var handlerElement in _dataXml.Root.Elements("handler"))
+            foreach (var handlerElement in _dataXml.Root.Elements(HandlerElementName))
             {
                 handlerNumber++;
 
-                string type = handlerElement.Attribute("type")?.Value;
+                string type = handlerElement.Attribute(HandlerTypeAttributeName)?.Value;
                 if (type != "js")
                     throw new NotSupportedException($"Unsupported Url Handler type '{type}' for handler #{handlerNumber}. Supported types are: js");
 
                 yield return new JavaScriptUrlHandler()
                 {
-                    UrlTemplate = handlerElement.Attribute("url")?.Value,
-                    ScriptFile = Path.Combine(_dataDirectory, handlerElement.Attribute("file")?.Value),
+                    UrlTemplate = handlerElement.Attribute(HandlerUrlTemplateAttributeName)?.Value,
+                    ScriptFile = Path.Combine(_dataDirectory, handlerElement.Attribute(HandlerFileNameAttributeName)?.Value),
                 };
             }
         }
