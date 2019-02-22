@@ -48,7 +48,7 @@ namespace RestNexus.UrlHandling
             {
                 if (other == null)
                     return false;
-                if (_segments.Length != _segments.Length)
+                if (_segments.Length != other._segments.Length)
                     return false;
 
                 // assume "this" is the template
