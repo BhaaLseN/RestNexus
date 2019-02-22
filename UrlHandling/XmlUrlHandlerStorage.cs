@@ -40,9 +40,21 @@ namespace RestNexus.UrlHandling
                 yield return new JavaScriptUrlHandler()
                 {
                     UrlTemplate = handlerElement.Attribute(HandlerUrlTemplateAttributeName)?.Value,
-                    ScriptFile = Path.Combine(_dataDirectory, handlerElement.Attribute(HandlerFileNameAttributeName)?.Value),
+                    Script = ReadContent(handlerElement.Attribute(HandlerFileNameAttributeName)?.Value),
                 };
             }
+        }
+
+        private string ReadContent(string fileName)
+        {
+            if (string.IsNullOrEmpty(fileName))
+                return null;
+
+            string filePath = Path.Combine(_dataDirectory, fileName);
+            if (!File.Exists(filePath))
+                return null;
+
+            return File.ReadAllText(filePath);
         }
 
         private static XDocument LoadXml(string dataXmlPath)
