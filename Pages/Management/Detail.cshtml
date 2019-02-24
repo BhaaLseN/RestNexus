@@ -1,0 +1,117 @@
+﻿@page
+@model RestNexus.Pages.Management.DetailModel
+@using RestNexus.UrlHandling
+@{
+    ViewData["Title"] = Model.IsNew ? "Create" : "Edit";
+    Layout = "~/Pages/_Layout.cshtml";
+}
+
+@section Header {
+    <link rel="stylesheet" data-name="vs/editor/editor.main" href="~/lib/monaco-editor/min/vs/editor/editor.main.css">
+    <style type="text/css">
+    #urlTemplate {
+        width: 97%;
+        /* overrule max-width limitation that applies to the rest of the site */
+        max-width: unset;
+    }
+    </style>
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<form id="f" method="post">
+    <input type="hidden" id="codeField" name="code" />
+    <p>Url: @Html.TextBoxFor(model => model.Handler.UrlTemplate, new
+       {
+           id = "urlTemplate",
+           onchange = "urlTemplateChanged()",
+           onkeypress = "this.onchange()",
+           oninput = "this.onchange()",
+           onpaste = "this.onchange()",
+       })</p>
+    @Html.ValidationMessageFor(model => model.Handler.UrlTemplate)
+    <p id="urlParameters"></p>
+    <p id="fullUrl"></p>
+    <div id="container" style="height:600px;border:1px solid grey"></div>
+    <input type="submit" value="Save" />
+</form>
+
+@section Scripts {
+    <script type="text/javascript">
+        var require = { paths: { 'vs': '/lib/monaco-editor/min/vs' } };
+    </script>
+    <script src="~/lib/monaco-editor/min/vs/loader.js"></script>
+    <script src="~/lib/monaco-editor/min/vs/editor/editor.main.nls.js"></script>
+    <script src="~/lib/monaco-editor/min/vs/editor/editor.main.js"></script>
+    <script type="text/javascript">
+
+    @if (string.IsNullOrWhiteSpace(Model.Handler.Content))
+    {
+<text>    var scriptContent = [
+        'function post(request) {',
+        '\tvar calledBy = request.url;',
+        '\tvar calledWith = request.body;',
+        '\tvar callerHeaders = request.headers;',
+</text>
+        var parameters = UrlHandler.ExtractParameters(Model.Handler.UrlTemplate);
+        foreach (var key in parameters.Keys)
+        {
+            @:'\tvar @key = request.parameters.@key;',
+        }
+<text>        '\thttp.post("http://localhost:6666/api/ping", { action: "pong" });',
+        '\treturn "ok";',
+        '}'
+    ].join('\n');
+</text>
+    }
+    else
+    {
+    @:var scriptContent = `@Html.Raw(Model.Handler.Content)`;
+    }
+    var editor = monaco.editor.create(document.getElementById('container'), {
+        value: scriptContent,
+        language: 'javascript'
+    });
+@{
+    foreach (var (fileName, content) in Model.Definitions)
+    {
+    @:monaco.languages.typescript.javascriptDefaults.addExtraLib(`@Html.Raw(content)`, 'RestNexus/@fileName');
+    }
+}
+
+    $('#f').submit(function() {
+        document.getElementById('codeField').value = editor.getValue();
+        return true;
+    });
+
+    var baseUrl = '@Url.Action("Get", "json", null, Request.Scheme)';
+    function urlTemplateChanged() {
+        var urlTemplate = $('#urlTemplate').val();
+        var segments = urlTemplate
+            .split('/')
+            .filter(function(s) { return s.startsWith(':'); })
+            .map(function(s) { return s.substr(1); })
+            .map(function(s) { return s === '' ? '<span style="color:red">(empty)</span>' : s; });
+
+        var foundParameters = '<i>No URL Parameters, use a segment starting with a colon to create one (such as "order/<b>:number</b>")</i>';
+        if (segments.length > 0) {
+            var seen = [];
+            foundParameters = '<b>Parameters:</b> ' + segments
+                .map(function(s) {
+                    if (seen.indexOf(s) !== -1) {
+                        return '<span style="color: orange">' + s + ' (duplicate)</span>';
+                    }
+                    seen.push(s);
+                    return s;
+                })
+                .join(', ');
+        }
+
+        $('#urlParameters').html(foundParameters);
+
+        var fullUrl = prettyFullUrl(baseUrl, urlTemplate);
+        $('#fullUrl').html(fullUrl);
+    }
+    urlTemplateChanged();
+    </script>
+}

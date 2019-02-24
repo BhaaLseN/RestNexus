@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Jint;
+using Jint.Native.Json;
+using Jint.Native.Object;
 using Jint.Parser;
 using Newtonsoft.Json.Linq;
 using RestNexus.JintInterop;
@@ -11,16 +12,27 @@ namespace RestNexus.UrlHandling
 {
     public class JavaScriptUrlHandler : UrlHandler
     {
-        public string ScriptFile { get; set; }
+        private string _script;
+        public string Script
+        {
+            get { return _script; }
+            set
+            {
+                if (_script == value)
+                    return;
+                _script = value;
+                _isPrepared = false;
+            }
+        }
 
         private readonly Dictionary<HttpVerb, JavaScriptHandleMethod> _handleMethods = new Dictionary<HttpVerb, JavaScriptHandleMethod>();
-        private string _script;
+        private bool _isPrepared;
 
         private const string ParameterName = "request";
 
         public override object Handle(UrlRequest request)
         {
-            EnsureScript();
+            PrepareScript();
 
             if (!_handleMethods.TryGetValue(request.Method, out var handleMethod))
                 return null;
@@ -47,8 +59,9 @@ namespace RestNexus.UrlHandling
             var parameters = ExtractParameters(UrlTemplate, url);
 
             var completionValue = engine
-                .Execute(_script)
+                .Execute(Script)
                 .SetValue("http", new HttpFunctions())
+                .SetValue("globals", JsonString(engine, JavaScriptEnvironment.Instance.Globals))
                 .SetValue(ParameterName, new
                 {
                     url = url,
@@ -60,14 +73,22 @@ namespace RestNexus.UrlHandling
             return engine;
         }
 
-        private void EnsureScript()
+        private ObjectInstance JsonString(Engine engine, string jsonString)
         {
-            if (!string.IsNullOrWhiteSpace(_script))
+            var parser = new JsonParser(engine);
+            var jsValue = parser.Parse(jsonString);
+            var o = jsValue.TryCast<ObjectInstance>();
+            // o could be null, when jsonString is not a valid JSON string for example.
+            return o;
+        }
+
+        private void PrepareScript()
+        {
+            if (_isPrepared)
                 return;
 
-            _script = File.ReadAllText(ScriptFile);
             var parser = new JavaScriptParser();
-            var ast = parser.Parse(_script);
+            var ast = parser.Parse(Script);
             foreach (var function in ast.FunctionDeclarations)
             {
                 // try to find a function that matches the verb name
@@ -81,6 +102,8 @@ namespace RestNexus.UrlHandling
                     WantsParameter = function.Parameters.Count() == 1,
                 };
             }
+
+            _isPrepared = true;
         }
 
         private sealed class JavaScriptHandleMethod
