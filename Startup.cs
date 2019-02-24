@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using RestNexus.JintInterop;
 using RestNexus.UrlHandling;
 
 namespace RestNexus
@@ -29,6 +30,7 @@ namespace RestNexus
 
             services.AddSingleton<UrlRepository>();
             services.AddSingleton<IUrlHandlerStorage, XmlUrlHandlerStorage>();
+            services.AddSingleton<JavaScriptEnvironment>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -46,6 +48,8 @@ namespace RestNexus
                     name: "default",
                     template: "{controller=management}/{action=list}/{id?}");
             });
+
+            JavaScriptEnvironment.Instance = app.ApplicationServices.GetService<JavaScriptEnvironment>();
         }
     }
 }

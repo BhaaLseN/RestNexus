@@ -1,0 +1,39 @@
+﻿@page
+@model RestNexus.Pages.Management.GlobalsModel
+@{
+    ViewData["Title"] = "Globals";
+    Layout = "~/Pages/_Layout.cshtml";
+}
+
+@section Header {
+    <link rel="stylesheet" data-name="vs/editor/editor.main" href="~/lib/monaco-editor/min/vs/editor/editor.main.css">
+}
+
+<h2>Globals</h2>
+
+<form id="f" method="post">
+    <input type="hidden" id="globalsField" name="globals" />
+    <div id="container" style="height:600px;border:1px solid grey"></div>
+    <input type="submit" value="Save" />
+</form>
+
+@section Scripts {
+    <script type="text/javascript">
+        var require = { paths: { 'vs': '/lib/monaco-editor/min/vs' } };
+    </script>
+    <script src="~/lib/monaco-editor/min/vs/loader.js"></script>
+    <script src="~/lib/monaco-editor/min/vs/editor/editor.main.nls.js"></script>
+    <script src="~/lib/monaco-editor/min/vs/editor/editor.main.js"></script>
+    <script type="text/javascript">
+    var scriptContent = `@Html.Raw(Model.Globals)`;
+    var editor = monaco.editor.create(document.getElementById('container'), {
+        value: scriptContent,
+        language: 'json'
+    });
+
+    $('#f').submit(function() {
+        document.getElementById('globalsField').value = editor.getValue();
+        return true;
+    });
+</script>
+}

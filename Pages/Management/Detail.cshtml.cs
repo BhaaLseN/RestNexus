@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.FileProviders;
+using RestNexus.JintInterop;
 using RestNexus.Models;
 using RestNexus.UrlHandling;
 
@@ -33,6 +35,16 @@ namespace RestNexus.Pages.Management
                 using (var streamReader = new StreamReader(contentStream))
                     Definitions.Add((fileName, streamReader.ReadToEnd()));
             }
+
+            Definitions.Add(("environment/globals.js", EnvironmentGlobals()));
+        }
+
+        private static readonly Regex JsonPasswordField = new Regex(@"(?<nameQuote>[""'])(?<name>.*?(?:password|token).*?)\k<nameQuote>\s*:\s*(?<valueQuote>[""'])(?<value>.*?)\k<valueQuote>", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static string EnvironmentGlobals()
+        {
+            // try to not put plaintext passwords or tokens in the source
+            string globals = JsonPasswordField.Replace(JavaScriptEnvironment.Instance.Globals, "${nameQuote}${name}${nameQuote}: ${valueQuote}secret${valueQuote}");
+            return "var globals = " + globals;
         }
 
         public void OnGet(string urlTemplate)
