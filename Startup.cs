@@ -46,7 +46,7 @@ namespace RestNexus
             {
                 routes.MapRoute(
                     name: "default",
-                    template: "{controller=management}/{action=list}/{id?}");
+                    template: "{controller=management}/{action=index}/{id?}");
             });
 
             JavaScriptEnvironment.Instance = app.ApplicationServices.GetService<JavaScriptEnvironment>();
