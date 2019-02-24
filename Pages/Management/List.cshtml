@@ -5,9 +5,23 @@
     Layout = "~/Pages/_Layout.cshtml";
 }
 
+@section Header {
+<style type="text/css">
+.delete-section {
+    display: inline;
+}
+</style>
+}
+
 <h2>Url Handlers</h2>
 
+@Html.AntiForgeryToken()
 <table class="table">
+    <colgroup>
+        <col width="70%"/>
+        <col width="10%"/>
+        <col width="20%"/>
+    </colgroup>
     <thead>
         <tr>
             <th>Url Template</th>
@@ -27,7 +41,10 @@
                 </td>
                 <td>
                     @Html.ActionLink("Edit", "detail", new { urlTemplate = item.UrlTemplate }) |
-                    @Html.ActionLink("Delete", "delete", new { urlTemplate = item.UrlTemplate })
+                    <div class="delete-section" >
+                        <a class="delete-link" href="#">Delete</a>
+                        <div class="btn btn-primary delete-confirm" style="display:none" data-delete-template="@item.UrlTemplate">Confirm Delete</div>
+                    </div>
                 </td>
             </tr>
         }
@@ -37,3 +54,71 @@
 <p>
     @Html.ActionLink("Create New", "detail")
 </p>
+
+@section Scripts {
+<script type="text/javascript">
+$(function () {
+    $('a.delete-link').click(function () {
+        var deleteLink = $(this);
+        deleteLink.hide();
+        var confirmButton = deleteLink.siblings('.delete-confirm');
+        confirmButton.show();
+
+        var cancelDelete =  function () {
+            removeEvents();
+            showDeleteLink();
+        };
+
+        var deleteItem = function () {
+            removeEvents();
+            confirmButton.hide();
+            $.ajax(
+                '@Url.Action()',
+                {
+                    data: AddAntiForgeryToken({
+                        urlTemplate: confirmButton.attr('data-delete-template')
+                    }),
+                    method: 'DELETE',
+                }).done(function () {
+                    var parentRow = deleteLink.parents('tr:first');
+                    parentRow.fadeOut('fast', function () {
+                        parentRow.remove();
+                    });
+                }).fail(function () {
+                    alert('Sorry, delete failed. Reloading the page might be a good idea.');
+                });
+            return false;
+        };
+
+        var removeEvents = function () {
+            confirmButton.off('click', deleteItem);
+            $(document).on('click', cancelDelete);
+            $(document).off('keypress', onKeyPress);
+        };
+
+        var showDeleteLink = function () {
+            confirmButton.hide();
+            deleteLink.show();
+        };
+
+        var onKeyPress = function (e) {
+            // cancel when the escape key is pressed
+            if (e.which == 27) {
+                cancelDelete();
+            }
+        };
+
+        confirmButton.on('click', deleteItem);
+        $(document).on('click', cancelDelete);
+        $(document).on('keypress', onKeyPress);
+
+        return false;
+    });
+
+    AddAntiForgeryToken = function (data) {
+        data.__RequestVerificationToken = $('input[name=__RequestVerificationToken]').val();
+        return data;
+    };
+});
+</script>
+}

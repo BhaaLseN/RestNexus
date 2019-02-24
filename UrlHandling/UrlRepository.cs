@@ -67,6 +67,12 @@ namespace RestNexus.UrlHandling
             _storage.SaveHandler(urlTemplate, handler);
         }
 
+        public bool Remove(string urlTemplate)
+        {
+            _handlers.Remove(new UrlTemplate(urlTemplate) { IsTemplate = true });
+            return _storage.DeleteHandler(urlTemplate);
+        }
+
         private sealed class UrlTemplate : IEquatable<UrlTemplate>
         {
             public bool IsTemplate { get; set; }

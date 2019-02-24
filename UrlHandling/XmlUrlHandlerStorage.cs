@@ -71,6 +71,30 @@ namespace RestNexus.UrlHandling
             _dataXml.Save(_dataXmlPath);
         }
 
+        public bool DeleteHandler(string urlTemplate)
+        {
+            var existingHandler = _dataXml.Root.Elements(HandlerElementName).FirstOrDefault(e => e.Attribute(HandlerUrlTemplateAttributeName)?.Value == urlTemplate);
+            if (existingHandler == null)
+                return false;
+
+            string fileName = existingHandler.Attribute(HandlerFileNameAttributeName)?.Value;
+            TryDeleteContent(fileName);
+
+            existingHandler.Remove();
+            _dataXml.Save(_dataXmlPath);
+            return true;
+        }
+
+        private void TryDeleteContent(string fileName)
+        {
+            if (string.IsNullOrEmpty(fileName))
+                return;
+
+            string filePath = Path.Combine(_dataDirectory, fileName);
+            if (File.Exists(filePath))
+                File.Delete(filePath);
+        }
+
         private string ReadContent(string fileName)
         {
             if (string.IsNullOrEmpty(fileName))
