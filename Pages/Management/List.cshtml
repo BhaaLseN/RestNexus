@@ -10,6 +10,9 @@
 .delete-section {
     display: inline;
 }
+.url-to-call {
+    font-size-adjust: 0.4;
+}
 </style>
 }
 
@@ -34,7 +37,8 @@
         {
             <tr>
                 <td>
-                    @Html.DisplayFor(modelItem => item.UrlTemplate)
+                    <div>@Html.DisplayFor(modelItem => item.UrlTemplate)</div>
+                    <div class="url-to-call"></div>
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.HandlerType)
@@ -119,6 +123,13 @@ $(function () {
         data.__RequestVerificationToken = $('input[name=__RequestVerificationToken]').val();
         return data;
     };
+
+    var baseUrl = '@Url.Action("Get", "json", null, Request.Scheme)';
+    $('.url-to-call').each(function(idx, div) {
+        var urlTemplate = $(div).prev('div:first').text();
+        var fullUrl = prettyFullUrl(baseUrl, urlTemplate);
+        $(div).html(fullUrl)
+    });
 });
 </script>
 }

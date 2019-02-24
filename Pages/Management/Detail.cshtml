@@ -31,6 +31,7 @@
        })</p>
     @Html.ValidationMessageFor(model => model.Handler.UrlTemplate)
     <p id="urlParameters"></p>
+    <p id="fullUrl"></p>
     <div id="container" style="height:600px;border:1px solid grey"></div>
     <input type="submit" value="Save" />
 </form>
@@ -83,6 +84,7 @@
         return true;
     });
 
+    var baseUrl = '@Url.Action("Get", "json", null, Request.Scheme)';
     function urlTemplateChanged() {
         var urlTemplate = $('#urlTemplate').val();
         var segments = urlTemplate
@@ -106,6 +108,9 @@
         }
 
         $('#urlParameters').html(foundParameters);
+
+        var fullUrl = prettyFullUrl(baseUrl, urlTemplate);
+        $('#fullUrl').html(fullUrl);
     }
     urlTemplateChanged();
     </script>
