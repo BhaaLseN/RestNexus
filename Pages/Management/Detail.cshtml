@@ -1,5 +1,6 @@
 ﻿@page
 @model RestNexus.Pages.Management.DetailModel
+@using System.Web
 @using RestNexus.UrlHandling
 @{
     ViewData["Title"] = Model.IsNew ? "Create" : "Edit";
@@ -66,7 +67,7 @@
     }
     else
     {
-    @:var scriptContent = `@Html.Raw(Model.Handler.Content)`;
+    @:var scriptContent = `@Html.Raw(HttpUtility.JavaScriptStringEncode(Model.Handler.Content))`;
     }
     var editor = monaco.editor.create(document.getElementById('container'), {
         value: scriptContent,
@@ -75,7 +76,7 @@
 @{
     foreach (var (fileName, content) in Model.Definitions)
     {
-    @:monaco.languages.typescript.javascriptDefaults.addExtraLib(`@Html.Raw(content)`, 'RestNexus/@fileName');
+    @:monaco.languages.typescript.javascriptDefaults.addExtraLib(`@Html.Raw(HttpUtility.JavaScriptStringEncode(content))`, 'RestNexus/@fileName');
     }
 }
 
