@@ -18,6 +18,14 @@
     * @param headers (Optional) List of headers to include with the request
     */
     static put(url: string, body, headers?): httpresponse;
+
+    /** Performs a web request (using the passed method) to url, optionally passing body
+    * @param url The URL to request (must include scheme/host)
+    * @param method A valid HTTP Verb (such as POST or PATCH)
+    * @param body (Optional) Any payload to be passed as JSON content (can be empty)
+    * @param headers (Optional) List of headers to include with the request
+    */
+    static put(url: string, method: string, body?, headers?): httpresponse;
 }
 
 declare class httpresponse {

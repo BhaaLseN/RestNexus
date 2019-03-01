@@ -67,6 +67,10 @@ namespace RestNexus.JintInterop
         public HttpResponse post(string url, object body, object headers) => PerformRequest(HttpMethod.Post, url, body: body, headers: headers);
         public HttpResponse put(string url, object body) => put(url, body, null);
         public HttpResponse put(string url, object body, object headers) => PerformRequest(HttpMethod.Put, url, body: body, headers: headers);
+
+        public HttpResponse request(string url, string method) => request(url, method, null, null);
+        public HttpResponse request(string url, string method, object body) => request(url, method, body, null);
+        public HttpResponse request(string url, string method, object body, object headers) => PerformRequest(new HttpMethod(method), url, body: body, headers: headers);
     }
     public class HttpResponse
     {
