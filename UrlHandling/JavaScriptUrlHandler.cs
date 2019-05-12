@@ -59,9 +59,9 @@ namespace RestNexus.UrlHandling
             var parameters = ExtractParameters(UrlTemplate, url);
 
             var completionValue = engine
-                .Execute(Script)
                 .SetValue("http", new HttpFunctions())
                 .SetValue("globals", JsonString(engine, JavaScriptEnvironment.Instance.Globals))
+                .Execute(Script)
                 .SetValue(ParameterName, new
                 {
                     url = url,
