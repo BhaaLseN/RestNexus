@@ -25,7 +25,7 @@
     * @param body (Optional) Any payload to be passed as JSON content (can be empty)
     * @param headers (Optional) List of headers to include with the request
     */
-    static put(url: string, method: string, body?, headers?): httpresponse;
+    static request(url: string, method: string, body?, headers?): httpresponse;
 }
 
 declare class httpresponse {
