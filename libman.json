@@ -17,6 +17,24 @@
         "min/vs/language/typescript/tsWorker.js",
         "min/vs/basic-languages/javascript/javascript.js"
       ]
+    },
+    {
+      "library": "twitter-bootstrap@3.3.6",
+      "destination": "wwwroot/lib/twitter-bootstrap/",
+      "files": [
+        "js/bootstrap.min.js",
+        "css/bootstrap.css",
+        "css/bootstrap.min.css",
+        "js/bootstrap.js"
+      ]
+    },
+    {
+      "library": "jquery@2.2.0",
+      "destination": "wwwroot/lib/jquery/",
+      "files": [
+        "jquery.min.js",
+        "jquery.js"
+      ]
     }
   ]
 }
