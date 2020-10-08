@@ -26,7 +26,7 @@ namespace RestNexus.JintInterop
             {
                 var prop = _root.Property(propertyName);
                 if (prop != null)
-                    Properties[propertyName] = descriptor = new NewtonsoftPropertyDescriptor(Engine, this, prop);
+                    Properties[propertyName] = descriptor = new NewtonsoftPropertyDescriptor(this, prop);
             }
             return descriptor;
         }
@@ -115,14 +115,12 @@ namespace RestNexus.JintInterop
 
         private sealed class NewtonsoftPropertyDescriptor : PropertyDescriptor
         {
-            private readonly Engine _engine;
             private readonly NewtonsoftObjectInstance _parent;
             private readonly JProperty _prop;
-            private JsValue _convertedValue = null;
+            private JsValue _convertedValue;
 
-            public NewtonsoftPropertyDescriptor(Engine engine, NewtonsoftObjectInstance parent, JProperty prop)
+            public NewtonsoftPropertyDescriptor(NewtonsoftObjectInstance parent, JProperty prop)
             {
-                _engine = engine;
                 _parent = parent;
                 _prop = prop;
                 if (_prop.Value != null)
