@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Jint;
+using Jint.Native;
 using Jint.Native.Json;
 using Jint.Native.Object;
 using Jint.Parser;
@@ -60,6 +61,7 @@ namespace RestNexus.UrlHandling
 
             engine
                 .SetValue("http", new HttpFunctions())
+                .SetValue("defer", new Action<long, Func<JsValue, JsValue[], JsValue>>(NativeFunctions.RunDeferred))
                 .SetValue("globals", JsonString(engine, JavaScriptEnvironment.Instance.Globals))
                 .Execute(Script)
                 .SetValue(ParameterName, new
