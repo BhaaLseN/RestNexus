@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using RestNexus.UrlHandling;
 
@@ -24,6 +25,9 @@ namespace RestNexus.Controllers
         }
 
         [HttpGet("{*url}")]
+        [ProducesDefaultResponseType]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<object> Get(string url)
         {
             var handler = _urlRepository.Find(url);
@@ -35,6 +39,9 @@ namespace RestNexus.Controllers
         }
 
         [HttpPost("{*url}")]
+        [ProducesDefaultResponseType]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<object> Post(string url, [FromBody] object body)
         {
             var handler = _urlRepository.Find(url);
@@ -46,6 +53,9 @@ namespace RestNexus.Controllers
         }
 
         [HttpPut("{*url}")]
+        [ProducesDefaultResponseType]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<object> Put(string url, [FromBody] object body)
         {
             var handler = _urlRepository.Find(url);

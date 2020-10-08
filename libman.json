@@ -3,7 +3,7 @@
   "defaultProvider": "cdnjs",
   "libraries": [
     {
-      "library": "monaco-editor@0.15.6",
+      "library": "monaco-editor@0.21.2",
       "destination": "wwwroot/lib/monaco-editor/",
       "files": [
         "min/vs/editor/editor.main.js",
@@ -16,6 +16,24 @@
         "min/vs/language/typescript/tsMode.js",
         "min/vs/language/typescript/tsWorker.js",
         "min/vs/basic-languages/javascript/javascript.js"
+      ]
+    },
+    {
+      "library": "twitter-bootstrap@4.5.2",
+      "destination": "wwwroot/lib/twitter-bootstrap/",
+      "files": [
+        "js/bootstrap.min.js",
+        "css/bootstrap.css",
+        "css/bootstrap.min.css",
+        "js/bootstrap.js"
+      ]
+    },
+    {
+      "library": "jquery@3.5.1",
+      "destination": "wwwroot/lib/jquery/",
+      "files": [
+        "jquery.min.js",
+        "jquery.js"
       ]
     }
   ]

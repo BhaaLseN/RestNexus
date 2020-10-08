@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using RestNexus.JintInterop;
 using RestNexus.UrlHandling;
 
@@ -10,8 +10,8 @@ namespace RestNexus
 {
     public class Startup
     {
-        private readonly IHostingEnvironment _env;
-        public Startup(IConfiguration configuration, IHostingEnvironment env)
+        private readonly IWebHostEnvironment _env;
+        public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
             Configuration = configuration;
             _env = env;
@@ -25,7 +25,7 @@ namespace RestNexus
             var contentRootProvider = _env.ContentRootFileProvider;
             services.AddSingleton(contentRootProvider);
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddRazorPages();
             services.AddSingleton(Configuration);
 
             services.AddSingleton<UrlRepository>();
@@ -34,7 +34,7 @@ namespace RestNexus
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -42,11 +42,13 @@ namespace RestNexus
             }
 
             app.UseStaticFiles();
-            app.UseMvc(routes =>
+            app.UseRouting();
+            app.UseEndpoints(endpoints =>
             {
-                routes.MapRoute(
+                endpoints.MapRazorPages();
+                endpoints.MapControllerRoute(
                     name: "default",
-                    template: "{controller}/{action}/{id?}",
+                    pattern: "{controller}/{action}/{id?}",
                     defaults: new
                     {
                         controller = "management",
