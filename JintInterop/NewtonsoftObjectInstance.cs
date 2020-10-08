@@ -144,7 +144,7 @@ namespace RestNexus.JintInterop
                 set
                 {
                     _convertedValue = value;
-                    if (value != null)
+                    if (value == null)
                         _prop.Value = null;
                     else
                         _prop.Value = _parent.ConvertBack(_prop.Value.Type, value);
