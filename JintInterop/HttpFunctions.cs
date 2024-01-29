@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Dynamic;
 using System.Net.Http;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace RestNexus.JintInterop
 {
@@ -15,7 +15,7 @@ namespace RestNexus.JintInterop
             if (body == null)
                 return;
 
-            var content = new StringContent(JsonConvert.SerializeObject(body));
+            var content = new StringContent(JsonSerializer.Serialize(body));
             content.Headers.ContentType.MediaType = "application/json";
             request.Content = content;
         }
@@ -32,9 +32,9 @@ namespace RestNexus.JintInterop
                 return;
             }
 
-            var jHeaders = JObject.Parse(JsonConvert.SerializeObject(headers));
-            foreach (var header in jHeaders.Properties())
-                request.Headers.Add(header.Name, header.Value.Value<string>());
+            var jHeaders = JsonNode.Parse(JsonSerializer.Serialize(headers));
+            foreach (var header in jHeaders.AsObject())
+                request.Headers.Add(header.Key, header.Value?.ToString());
         }
 
         private static HttpResponse PerformRequest(HttpMethod method, string url, object body = null, object headers = null)
