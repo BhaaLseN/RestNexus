@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using Esprima;
+using Esprima.Ast;
 using Jint;
 using Jint.Native;
 using Jint.Native.Json;
 using Jint.Native.Object;
-using Jint.Parser;
-using Newtonsoft.Json.Linq;
+using Jint.Runtime.Interop;
 using RestNexus.JintInterop;
 
 namespace RestNexus.UrlHandling
@@ -41,20 +45,46 @@ namespace RestNexus.UrlHandling
             var engine = Prepare(request);
             string methodInvocation = handleMethod.GetInvocationString(ParameterName);
             var completionValue = engine
-                .Execute(methodInvocation)
-                .GetCompletionValue();
+                .Evaluate(methodInvocation);
 
             return completionValue.ToObject();
         }
 
         private Engine Prepare(UrlRequest request)
         {
-            var engine = new Engine();
+            var engine = new Engine(options =>
+            {
+                // make JsonArray behave like JS array
+                options.Interop.WrapObjectHandler = static (e, target, type) =>
+                {
+                    var wrapped = new ObjectWrapper(e, target);
+                    if (target is JsonArray)
+                    {
+                        wrapped.Prototype = e.Intrinsics.Array.PrototypeObject;
+                    }
+                    return wrapped;
+                };
+
+                // we cannot access this[string] with anything else than JsonObject, otherwise it will throw
+                options.Interop.TypeResolver = new TypeResolver
+                {
+                    MemberFilter = static info =>
+                    {
+                        if (info.ReflectedType != typeof(JsonObject) && info.Name == "Item" && info is PropertyInfo p)
+                        {
+                            var parameters = p.GetIndexParameters();
+                            return parameters.Length != 1 || parameters[0].ParameterType != typeof(string);
+                        }
+
+                        return true;
+                    }
+                };
+            });
 
             object bodyParam = request.Body;
-            // Jint cannot natively use Newtonsoft objects, lets wrap them
-            if (bodyParam is JObject jObject)
-                bodyParam = new NewtonsoftObjectInstance(engine, jObject);
+            // Jint cannot natively use System.Text.Json objects, but we can wrap them.
+            if (bodyParam is JsonElement jsonElement)
+                bodyParam = jsonElement.Deserialize<JsonNode>();
 
             string url = request.Url;
             var parameters = ExtractParameters(UrlTemplate, url);
@@ -90,8 +120,8 @@ namespace RestNexus.UrlHandling
                 return;
 
             var parser = new JavaScriptParser();
-            var ast = parser.Parse(Script);
-            foreach (var function in ast.FunctionDeclarations)
+            var ast = parser.ParseScript(Script);
+            foreach (var function in ast.Body.OfType<FunctionDeclaration>())
             {
                 // try to find a function that matches the verb name
                 string functionName = function.Id.Name;
@@ -101,7 +131,7 @@ namespace RestNexus.UrlHandling
                 _handleMethods[verb] = new JavaScriptHandleMethod(functionName)
                 {
                     // assume if there is one parameter, we should pass our request object in there
-                    WantsParameter = function.Parameters.Count() == 1,
+                    WantsParameter = function.Params.Count == 1,
                 };
             }
 
